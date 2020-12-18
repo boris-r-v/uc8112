@@ -1,0 +1,1 @@
+/usr/bin/c++   -Wall -Werror -Wpedantic -std=c++11   CMakeFiles/tty_slave.dir/src/tty_slave.cpp.o  -o tty_slave  src/libserial.a 
