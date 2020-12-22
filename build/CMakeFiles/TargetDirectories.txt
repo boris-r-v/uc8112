@@ -1,7 +1,0 @@
-/home/boris/Work/Devel/.moxa_uc81_bug/build/CMakeFiles/rebuild_cache.dir
-/home/boris/Work/Devel/.moxa_uc81_bug/build/CMakeFiles/edit_cache.dir
-/home/boris/Work/Devel/.moxa_uc81_bug/build/CMakeFiles/tty_master.dir
-/home/boris/Work/Devel/.moxa_uc81_bug/build/CMakeFiles/tty_slave.dir
-/home/boris/Work/Devel/.moxa_uc81_bug/build/src/CMakeFiles/rebuild_cache.dir
-/home/boris/Work/Devel/.moxa_uc81_bug/build/src/CMakeFiles/edit_cache.dir
-/home/boris/Work/Devel/.moxa_uc81_bug/build/src/CMakeFiles/serial.dir

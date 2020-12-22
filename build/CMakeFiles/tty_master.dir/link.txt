@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall -Werror -Wpedantic -std=c++11   CMakeFiles/tty_master.dir/src/tty_master.cpp.o  -o tty_master  src/libserial.a 

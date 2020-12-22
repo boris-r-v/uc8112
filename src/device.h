@@ -33,6 +33,7 @@ class Device
 
 };
 
-
+void create_devices ( std::vector<Device>&, riku::Serial& );
+ 
 
 #endif // __DEVICE_HH__

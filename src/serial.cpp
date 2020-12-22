@@ -136,12 +136,12 @@ int riku::Serial::WriteTTY ( const void * buffer, int sizeBuffer )
     struct timeval tv={ 0, (int)reqWait };
     select ( 0, NULL, NULL, NULL, &tv );
 
-    
+/*    
     std::cout<<"TTY Write: ";
     for (int i=0; i<sizeBuffer; i++)
        printf ("%.2x ",buff[i] );
     printf ("\n");
-    
+*/    
      /*Flush all data into stream*/
     tcflush( sfd, TCIOFLUSH );
     int size = 0, ret;
@@ -163,11 +163,11 @@ int riku::Serial::WriteTTY ( const void * buffer, int sizeBuffer )
     else return -1;
 }
 
-int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned timeout, std::string const& device_name )
+int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned ms_timeout, std::string const& device_name )
 {
 
-   int ret = ReadTTY_inner (buffer, sizeBuffer, timeout, device_name );
-
+   int ret = ReadTTY_inner (buffer, sizeBuffer, ms_timeout, device_name );
+/*
     if ( ret > 0 )
     {
        uint8_t* buff = static_cast<uint8_t*>(buffer);
@@ -175,10 +175,11 @@ int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned timeout, std
        for ( int i=0; i< ret; ++i )  printf ("%.2x ",buff[i] );
        printf ("\n");
     }
+*/
     return ret;
 }
-
-int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned timeout, std::string const& device_name )
+//if device_name length is null - invoke REadTTy from slave.
+int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned ms_timeout, std::string const& device_name )
 {
     fd_set readfds;
     char* ptr = static_cast<char*>(buffer);
@@ -186,22 +187,21 @@ int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned timeou
 
     FD_ZERO(&readfds);
     FD_SET(sfd, &readfds);
-    long int ct = timeout > ansWait ? timeout : ansWait;
-//    std::cout << "riku::Serial::Timeout calc: " << timeout << " xml-set: " <<  ansWait << " handle: " << ct << std::endl;
+    long int ct = ms_timeout*1000 > ansWait ? ms_timeout*1000  : ansWait;
+    //std::cout << "riku::Serial::Timeout calc: " << timeout << " xml-set: " <<  ansWait << " handle: " << ct << std::endl;
     struct timeval tv={ 0, ct };
     while(1) 
     {
         int ret = select(nfds, &readfds, NULL, NULL, &tv );
         if( -1 == ret || 0 == ( FD_ISSET (sfd, &readfds ) ) ) 
         {
-//                std::cout << "riku::Serial::ReadTTY, responce time "<< ct <<"(ms) out, select(...) ret: " << ret << ", error: "<<  strerror(errno) << std::endl;
-
-            if (0 == start )
-                KSA_WARNING << "Serial::ReadTTY("<< tty<<"):: время " <<  ct << " (мкс) ожидания ответа от \"" << device_name  <<"\" истекло, неполучено ни одного байта данных." << std::endl;
-//            else
-//                KSA_LOG << "Serial::ReadTTY("<< tty<<"): для "<< device_name << " прочитали: " << start << " байт. (select wait:" << ct<< "(ms), return:" << ret <<")" << std::endl;
-
-           return start==0 ?  -1 : start;
+            //std::cout << "riku::Serial::ReadTTY, responce time "<< ct <<"(ms) out, select(...) ret: " << ret << ", error: "<<  strerror(errno) << std::endl;
+            if ( device_name.size() )
+            {
+                if (0 == start ) KSA_WARNING << "Serial::ReadTTY("<< tty<<"):: время " <<  ct << " (мкс) ожидания ответа от \"" << device_name  <<"\" истекло, неполучено ни одного байта данных." << std::endl;
+                //else  KSA_LOG << "Serial::ReadTTY("<< tty<<"): для "<< device_name << " прочитали: " << start << " байт. (select wait:" << ct<< "(ms), return:" << ret <<")" << std::endl;  
+            }
+            return start==0 ?  -1 : start;
         }
         ++cntr;
         ioctl(sfd, FIONREAD, &bytes);
@@ -215,13 +215,14 @@ int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned timeou
             }
 
             start += read( sfd, ( ptr + offset ), bytes );
-            if ( start >= sizeBuffer )
+/*            if ( start >= sizeBuffer )
             {
-                /*После приема всего пакета, всегда ждем время достаточное для принятия всего пакета и очищаем приемный буфер от того что пришло*/
+                ///После приема всего пакета, всегда ждем время достаточное для принятия всего пакета и очищаем приемный буфер от того что пришло
                 usleep( timeout );
                 tcflush( sfd, TCIFLUSH );
                 return sizeBuffer;
             }
+*/
         }
         tv.tv_usec = ct;
     }

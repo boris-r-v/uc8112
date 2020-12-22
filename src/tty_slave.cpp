@@ -24,15 +24,7 @@ Slave::Slave( riku::Serial & s):
     serial_( s )
 {
 
-    devices_.push_back( Device(s, "AK", 
-                    {0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1,0x1}, 
-                    {0x11,0x11,0x11} 
-                ) );
-
-    devices_.push_back( Device(s, "ION",
-                    {0x2,0x2,0x2,0x2,0x2}, 
-                    {0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,0x22,22,0x22,0x22,0x22,0x22,0x22,22,0x22,0x22} 
-                ) );
+    create_devices( devices_, s );
 
 }
 
@@ -41,36 +33,35 @@ void Slave::run()
     while (1) 
     {
         bzero( reqbuff_ , ansbuff_size_ );
-        int reads = serial_.ReadTTY( reqbuff_, ansbuff_size_  );
+        int reads = serial_.ReadTTY( reqbuff_, ansbuff_size_, 20  );
         if ( -1 != reads )
         {
-            std::cout << "Read " << reads << " bytes" << std::endl;
-            ++good;
+            //std::cout << "Read " << reads << " bytes" << std::endl;
+            bool get_req_for_any_device = false;
             for ( auto dev : devices_ )
             {
                 if ( dev.check_request( reqbuff_ ) )
                 {
                     int writes = serial_.WriteTTY( dev.answer_out(), dev.asize() );
-                    std::cout << "Device: " << dev.name() << std::endl << "Send: " << writes << " bytes" << std::endl;
-                }
-                else
-                {
-                    std::cout << "Device: Not found" << std::endl;
+                    //std::cout << "Device: " << dev.name() << " send answer: " << writes << " bytes" << std::endl;
+                    get_req_for_any_device = true;
                 }
             }
-            std::cout << "  Statistic good:bad -- " << good << ":" << bad << std::endl;
-        }
-        else
-            ++bad;
 
-        usleep(500000);
+            if ( get_req_for_any_device )   
+                ++good;
+            else
+                ++bad;
+
+            std::cout << "  Statistic received_request: " << (good+bad) << ", goods: " << good << ", bads: " << bad << std::endl;
+        }
     }
 }
 
 
 int main( int argc, char** argv )
 {
-    riku::Serial s ( argv[1], 19200, 1, 0.1, 70, 70 );
+    riku::Serial s ( argv[1], 19200, 1, 0.1, 70, 7 );
     Slave m( s );
     m.run();
 }
