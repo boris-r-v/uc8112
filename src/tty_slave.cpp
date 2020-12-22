@@ -45,6 +45,7 @@ void Slave::run()
                     int writes = serial_.WriteTTY( dev.answer_out(), dev.asize() );
                     //std::cout << "Device: " << dev.name() << " send answer: " << writes << " bytes" << std::endl;
                     get_req_for_any_device = true;
+                    std::cout << "  Request for device: " << dev.name() << std::endl;
                 }
             }
 
@@ -53,7 +54,7 @@ void Slave::run()
             else
                 ++bad;
 
-            std::cout << "  Statistic received_request: " << (good+bad) << ", goods: " << good << ", bads: " << bad << std::endl;
+            std::cout << "STATICTIC: received_requests: " << (good+bad) << ", goods: " << good << ", bads: " << bad << std::endl;
         }
     }
 }

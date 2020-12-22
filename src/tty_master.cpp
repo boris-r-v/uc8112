@@ -29,7 +29,7 @@ void Master::run()
     {
         for ( auto dev : devices_ )
         {
-//            std::cout << "Handle: " << dev.name() << std::endl;
+            std::cout << "  Handle: " << dev.name() << std::endl;
             serial_.WriteTTY( dev.request_out(), dev.rsize() );
             serial_.ReadTTY( dev.answer_in(), dev.asize(), 150, dev.name() );
             if ( dev.check_answer( dev.answer_in() ) )
@@ -42,7 +42,7 @@ void Master::run()
             }
             usleep(50000);
         }
-            std::cout << "  Statistic received_request: " << (good+bad) << ", goods: " << good << ", bads: " << bad << std::endl;
+            std::cout<< "STATICTIC: sended_requests: " << (good+bad) << ", goods: " << good << ", bads: " << bad << std::endl << std::endl ;
     }
 }
 

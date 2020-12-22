@@ -136,12 +136,12 @@ int riku::Serial::WriteTTY ( const void * buffer, int sizeBuffer )
     struct timeval tv={ 0, (int)reqWait };
     select ( 0, NULL, NULL, NULL, &tv );
 
-/*    
-    std::cout<<"TTY Write: ";
+    
+    std::cout<<"    tty-write: ";
     for (int i=0; i<sizeBuffer; i++)
        printf ("%.2x ",buff[i] );
     printf ("\n");
-*/    
+    
      /*Flush all data into stream*/
     tcflush( sfd, TCIOFLUSH );
     int size = 0, ret;
@@ -167,15 +167,15 @@ int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned ms_timeout, 
 {
 
    int ret = ReadTTY_inner (buffer, sizeBuffer, ms_timeout, device_name );
-/*
+
     if ( ret > 0 )
     {
        uint8_t* buff = static_cast<uint8_t*>(buffer);
-       std::cout<<"TTY Read: ";
+       std::cout<<"    tty-read: ";
        for ( int i=0; i< ret; ++i )  printf ("%.2x ",buff[i] );
        printf ("\n");
     }
-*/
+
     return ret;
 }
 //if device_name length is null - invoke REadTTy from slave.
