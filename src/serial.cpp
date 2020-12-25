@@ -16,11 +16,11 @@ riku::Serial::Serial( const std::string& _tty, unsigned _speed, unsigned _debug,
     speed(_speed ),
     debug(_debug ),
     loopWait ( _sleep*1000000 ),
-    ansWait (_ansWait*1000 ),
-    reqWait (_reqWait*1000 ),
+    ansWait (_ansWait ),
+    reqWait (_reqWait ),
     tty(_tty )
 {
-    KSA_LOG << " Serial: create with tty=\"" << tty <<"\" speed=\""<< speed << "\" sleep=\"" << _sleep << "\" ansWait=\"" << _ansWait << "\" reqWait=\"" << _reqWait <<"\"" <<std::endl;
+    KSA_LOG << " Serial: create with tty=\"" << tty <<"\" speed=\""<< speed << "\" sleep=\"" << _sleep << "\" ansWait=\"" << _ansWait << "us\" reqWait=\"" << _reqWait <<"us\"" <<std::endl;
     InitSerial();
 }
 
@@ -133,8 +133,8 @@ int riku::Serial::WriteTTY ( const void * buffer, int sizeBuffer )
 {
     const unsigned char * buff = (const unsigned char*) buffer;
     /*Before send new data, sleep to 3 millyseconds, protocol request*/
-    struct timeval tv={ 0, (int)reqWait };
-    select ( 0, NULL, NULL, NULL, &tv );
+//    struct timeval tv={ 0, (int)reqWait };
+//    select ( 0, NULL, NULL, NULL, &tv );
 
     
     std::cout<<"    tty-write: ";
@@ -163,10 +163,10 @@ int riku::Serial::WriteTTY ( const void * buffer, int sizeBuffer )
     else return -1;
 }
 
-int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned ms_timeout, std::string const& device_name )
+int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned us_timeout, std::string const& device_name )
 {
 
-   int ret = ReadTTY_inner (buffer, sizeBuffer, ms_timeout, device_name );
+   int ret = ReadTTY_inner (buffer, sizeBuffer, us_timeout, device_name );
 
     if ( ret > 0 )
     {
@@ -179,15 +179,15 @@ int riku::Serial::ReadTTY ( void * buffer, int sizeBuffer, unsigned ms_timeout, 
     return ret;
 }
 //if device_name length is null - invoke REadTTy from slave.
-int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned ms_timeout, std::string const& device_name )
+int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned us_timeout, std::string const& device_name )
 {
     fd_set readfds;
-    char* ptr = static_cast<char*>(buffer);
+    uint8_t* ptr = static_cast<uint8_t*>(buffer);
     int bytes(0), start(0), nfds( sfd+1 ), cntr( 0 ),  offset(0);
 
     FD_ZERO(&readfds);
     FD_SET(sfd, &readfds);
-    long int ct = ms_timeout*1000 > ansWait ? ms_timeout*1000  : ansWait;
+    long int ct = us_timeout > ansWait ? us_timeout  : ansWait;
     //std::cout << "riku::Serial::Timeout calc: " << timeout << " xml-set: " <<  ansWait << " handle: " << ct << std::endl;
     struct timeval tv={ 0, ct };
     while(1) 
@@ -207,6 +207,7 @@ int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned ms_tim
         ioctl(sfd, FIONREAD, &bytes);
         if ( bytes > 0 ) 
         {
+std::cout << "offset: " << offset << " start: " << start << " bytes: " << bytes << std::endl;
             offset = start;
             if ( bytes > sizeBuffer-start ) 
             {
@@ -215,14 +216,18 @@ int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned ms_tim
             }
 
             start += read( sfd, ( ptr + offset ), bytes );
-/*            if ( start >= sizeBuffer )
+for ( int i = 0; i < start; ++i )
+    std::cout << std::hex << "0x" << (int)ptr[i] << " ";
+std::cout << std::dec << std::endl;
+
+            if ( start >= sizeBuffer )
             {
                 ///После приема всего пакета, всегда ждем время достаточное для принятия всего пакета и очищаем приемный буфер от того что пришло
-                usleep( timeout );
-                tcflush( sfd, TCIFLUSH );
+//                usleep( us_timeout );
+//                tcflush( sfd, TCIFLUSH );
                 return sizeBuffer;
             }
-*/
+
         }
         tv.tv_usec = ct;
     }

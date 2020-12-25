@@ -36,25 +36,7 @@ void Slave::run()
         int reads = serial_.ReadTTY( reqbuff_, ansbuff_size_, 1  );
         if ( -1 != reads )
         {
-            //std::cout << "Read " << reads << " bytes" << std::endl;
-            bool get_req_for_any_device = false;
-            for ( auto dev : devices_ )
-            {
-                if ( dev.check_request( reqbuff_ ) )
-                {
-                    int writes = serial_.WriteTTY( dev.answer_out(), dev.asize() );
-                    //std::cout << "Device: " << dev.name() << " send answer: " << writes << " bytes" << std::endl;
-                    get_req_for_any_device = true;
-                    std::cout << "  Request for device: " << dev.name() << std::endl;
-                }
-            }
-
-            if ( get_req_for_any_device )   
-                ++good;
-            else
-                ++bad;
-
-            std::cout << "STATICTIC: received_requests: " << (good+bad) << ", goods: " << good << ", bads: " << bad << std::endl;
+            serial_.WriteTTY( devices_.front().answer_out(), devices_.front().asize() );
         }
     }
 }
