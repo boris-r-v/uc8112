@@ -48,6 +48,9 @@ int main( int argc, char** argv )
 {
     if ( argc != 2 ) { std::cerr <<"Usage: tty_master name_of_serial_port (/dev/ttyM1)" << std::endl; return 1; }
     riku::Serial s ( argv[1], 19200, 1, 0.001, 70000, 5000 );
+
+    s.SetStopBits( 2 );
+
     Master m( s );
     m.run();
     return 0;

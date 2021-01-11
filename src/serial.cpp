@@ -49,6 +49,7 @@ bool riku::Serial::InitSerial()
     }
     else
     {
+        SetStopBits( 2 );
         if ( SpeedTTY( speed ) )
         {
             KSA_LOG << "Serial InitSerial : init-result "<< tty <<" successful. Start handle tty devices."<<std::endl;
@@ -62,9 +63,22 @@ bool riku::Serial::InitSerial()
     return true;
 }
 
+void riku::Serial::SetStopBits ( unsigned stb )
+{
+    struct termios newtio;
+//    tcgetattr( sfd, &oldtio);
+    bzero(&newtio, sizeof(newtio));
+
+    newtio.c_cflag = B19200 | CS8  | CLOCAL  | CREAD  | ( stb == 2 ? CSTOPB : 0 );
+    newtio.c_iflag = 0 ;
+    newtio.c_oflag = 0 ;
+    newtio.c_lflag = IEXTEN;
+
+    tcsetattr(sfd, TCSANOW, &newtio);
+}
+
 int riku::Serial::OpenTTY ( )
 {
-    struct termios oldtio,newtio;
     int fd( -1 );
 
     std::cout<<" before Open "<<tty<<", fd="<<fd<<" debug="<<debug<<std::endl;
@@ -77,15 +91,6 @@ int riku::Serial::OpenTTY ( )
     }
     else std::cout<<" Open "<<tty<<", fd="<<fd<<std::endl;
 
-    tcgetattr(fd, &oldtio);
-    bzero(&newtio, sizeof(newtio));
-
-    newtio.c_cflag = B19200 | CS8 | CSTOPB | CLOCAL  | CREAD  ;
-    newtio.c_iflag = 0 ;
-    newtio.c_oflag = 0 ;
-    newtio.c_lflag = IEXTEN;
-
-    tcsetattr(fd,TCSANOW,&newtio);
     tcflush(fd, TCOFLUSH);
     tcflush(fd, TCIFLUSH);
     tcflow(fd,TCOON);
@@ -207,7 +212,7 @@ int riku::Serial::ReadTTY_inner ( void * buffer, int sizeBuffer, unsigned us_tim
         ioctl(sfd, FIONREAD, &bytes);
         if ( bytes > 0 ) 
         {
-std::cout << "offset: " << offset << " start: " << start << " bytes: " << bytes << std::endl;
+//std::cout << "offset: " << offset << " start: " << start << " bytes: " << bytes << std::endl;
             offset = start;
             if ( bytes > sizeBuffer-start ) 
             {
@@ -216,10 +221,11 @@ std::cout << "offset: " << offset << " start: " << start << " bytes: " << bytes 
             }
 
             start += read( sfd, ( ptr + offset ), bytes );
+/*
 for ( int i = 0; i < start; ++i )
     std::cout << std::hex << "0x" << (int)ptr[i] << " ";
 std::cout << std::dec << std::endl;
-
+*/
             if ( start >= sizeBuffer )
             {
                 ///После приема всего пакета, всегда ждем время достаточное для принятия всего пакета и очищаем приемный буфер от того что пришло

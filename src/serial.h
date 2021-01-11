@@ -17,6 +17,8 @@ namespace riku
             Serial( const std::string& _tty, unsigned _speed, unsigned _debug, float _sleep, unsigned _ansWait, unsigned _reqWait );
             virtual ~Serial ();
 
+            void SetStopBits ( unsigned stb ); //std= 1 | 2
+
             bool InitSerial ( );
             void CloseSerial( );
             int OpenTTY ( );

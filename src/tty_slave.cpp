@@ -68,6 +68,9 @@ int main( int argc, char** argv )
 	wait = atoi(argv[2]);
 
     riku::Serial s ( argv[1], 19200, 1, 0.1, 1, wait );
+
+    s.SetStopBits( 1 );
+
     Slave m( s );
     m.run();
     return 0;
